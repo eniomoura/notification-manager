@@ -1,6 +1,1 @@
-# GEN-EXPRESS-CLI
-
-This is a CLI tool to generate express.js boilerplate code.
-
-- [GITHUB](https://github.com/RulerChen/gen-express-cli)
-- [NPM](https://www.npmjs.com/package/gen-express-cli)
+Uma aplicação servida via Web API utilizando NodeJS/TypeScript que permite o envio, atualização e consulta dos status de notificações via webhooks recebidos a partir de um serviço externo.
