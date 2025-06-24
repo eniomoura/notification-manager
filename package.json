@@ -1,0 +1,36 @@
+{
+  "name": "notification-manager",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development nodemon --exec ts-node ./src/index.ts",
+    "build": "tsc",
+    "start": "cross-env NODE_ENV=production node ./build/src/index.js",
+    "lint": "eslint ./src/**/*.ts --fix",
+    "format": "prettier --write ./**/*.{ts,json}"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "2.8.5",
+    "cross-env": "7.0.3",
+    "dotenv": "16.5.0",
+    "express": "5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.9",
+    "typescript": "5.3.3",
+    "ts-node": "10.9.2",
+    "@types/cors": "2.8.17",
+    "@types/express": "5.0.1",
+    "@types/node": "20.14.8",
+    "eslint": "8.57.0",
+    "@typescript-eslint/eslint-plugin": "8.29.1",
+    "@typescript-eslint/parser": "8.29.1",
+    "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-prettier": "5.2.6",
+    "prettier": "3.5.3"
+  }
+}
