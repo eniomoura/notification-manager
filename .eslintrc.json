@@ -11,8 +11,7 @@
     "@typescript-eslint"
   ],
   "parserOptions": {
-    "ecmaVersion": "latest",
-    "sourceType": "module"
+    "ecmaVersion": "latest"
   },
   "rules": {
     "prettier/prettier": [
