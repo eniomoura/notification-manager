@@ -19,11 +19,13 @@ router.post('/send', async (req: Request, res: Response) => {
 router.post('/update', (req: Request, res: Response) => {
   // update notification status on DB from webhook body
   console.log(new Date().toLocaleString().concat(':'), res.statusCode);
+  res.status(204).send();
 });
 
 router.get('/query', (req: Request, res: Response) => {
   // query notification status from db
   console.log(new Date().toLocaleString().concat(':'), res.statusCode);
+  res.status(204).send();
 });
 
 export default router;
