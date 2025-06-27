@@ -3,6 +3,17 @@ enum Channel {
   whatsApp = 'whatsApp',
 }
 
+export interface Webhook {
+  // id definido pelos sistemas externos ao serviço de notificações
+  id: number;
+
+  // data/hora de envio da notificação
+  timestamp: number;
+
+  // transição da notificação que ocorreu
+  event: string;
+}
+
 export interface Notification {
   // id da notificação no disparador
   id: string;
@@ -41,5 +52,15 @@ export class NotificationSdk {
       const id = (Math.random() + 1).toString(36).substring(7);
       resolve({ id, channel, to, body, externalId });
     });
+  }
+
+  // updates a notification in the internal db
+  update(webhook: Webhook): Promise<void> {
+    //if notification doesn't exist in the db, create it
+
+    //if it does, update it if the webhook timestamp is newer than the db one
+
+    // mocked update
+    return new Promise<void>((resolve) => resolve());
   }
 }
