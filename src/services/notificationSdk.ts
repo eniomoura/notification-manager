@@ -3,7 +3,7 @@ enum Channel {
   whatsApp = 'whatsApp',
 }
 
-interface Notification {
+export interface Notification {
   // id da notificação no disparador
   id: string;
 
@@ -30,7 +30,12 @@ export class NotificationSdk {
   }
 
   // sends a notification
-  send(channel: Channel, to: string, body: string, externalId: string): Promise<Notification> {
+  send(
+    channel: Channel,
+    to: string,
+    body: string,
+    externalId: string,
+  ): Promise<Notification> {
     // mocked charge
     return new Promise<Notification>((resolve) => {
       const id = (Math.random() + 1).toString(36).substring(7);
