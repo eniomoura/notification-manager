@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3';
 import { Channel, type Notification } from '../services/notificationSdk';
-const db = new sqlite3.Database(':memory:');
+const db = new sqlite3.Database('database.db');
 
 export function initDB() {
   process.on('exit', () => {
@@ -9,7 +9,7 @@ export function initDB() {
 
   db.serialize(() => {
     db.run(
-      'CREATE TABLE notifications (' +
+      'CREATE TABLE IF NOT EXISTS notifications (' +
         '`id` INTEGER PRIMARY KEY AUTOINCREMENT,' +
         '`externalId` TEXT,' +
         '`channel` TEXT,' +
@@ -49,8 +49,10 @@ export function queryNotification(externalId: number): Promise<Notification> {
   return new Promise<Notification>((resolve) =>
     db.serialize(() => {
       db.prepare('SELECT status FROM notifications WHERE externalId = ?')
-        .run(externalId)
-        .get(resolve || console.log)
+        .get(externalId, (err: Error, response: Notification) => {
+          if (err) throw err;
+          resolve(response);
+        })
         .finalize();
     }),
   );

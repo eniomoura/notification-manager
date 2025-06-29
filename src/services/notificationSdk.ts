@@ -71,6 +71,7 @@ export class NotificationSdk {
     //check if notification exists in internal db
     //check if the webhook timestamp is newer than the db one
     //update notification if the webhook timestamp is newer than the db one
+    //return updated notification
     updateNotificationStatus(webhook.id, webhook.event);
   }
 

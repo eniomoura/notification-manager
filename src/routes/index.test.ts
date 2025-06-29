@@ -28,6 +28,7 @@ describe('POST /update', () => {
     await api
       .post('/update')
       .send({
+        externalId: '1234',
         timestamp: 'YYYY-MM-DDThh:mm:ss.SSSZ',
         event: 'delivered', // or sent, etc
       })
