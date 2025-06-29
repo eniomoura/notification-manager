@@ -1,4 +1,10 @@
-enum Channel {
+import {
+  insertNotification,
+  queryNotification,
+  updateNotificationStatus,
+} from './database';
+
+export enum Channel {
   sms = 'sms',
   whatsApp = 'whatsApp',
 }
@@ -30,7 +36,11 @@ export interface Notification {
   // id definido pelos sistemas externos ao serviço de notificações
   externalId: string;
 
+  //status da notificação
+  status: string;
+
   // other fields: recipients, timestamps, etc
+  latestUpdate?: Date;
 }
 
 export class NotificationSdk {
@@ -48,19 +58,24 @@ export class NotificationSdk {
     externalId: string,
   ): Promise<Notification> {
     // mocked charge
+    insertNotification(channel, to, body, externalId);
     return new Promise<Notification>((resolve) => {
       const id = (Math.random() + 1).toString(36).substring(7);
-      resolve({ id, channel, to, body, externalId });
+      resolve({ id, channel, to, body, externalId, status: 'processing' });
     });
   }
 
   // updates a notification in the internal db
-  update(webhook: Webhook): Promise<void> {
-    //if notification doesn't exist in the db, create it
+  async update(webhook: Webhook): Promise<void> {
+    //store webhook for later reconciliation
+    //check if notification exists in internal db
+    //check if the webhook timestamp is newer than the db one
+    //update notification if the webhook timestamp is newer than the db one
+    updateNotificationStatus(webhook.id, webhook.event);
+  }
 
-    //if it does, update it if the webhook timestamp is newer than the db one
-
-    // mocked update
-    return new Promise<void>((resolve) => resolve());
+  // returns a notification from the internal db
+  query(externalId: string): Promise<Notification> {
+    return queryNotification(Number.parseInt(externalId));
   }
 }

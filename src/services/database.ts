@@ -1,55 +1,63 @@
 import sqlite3 from 'sqlite3';
-import type { Notification } from '../services/notificationSdk';
+import { Channel, type Notification } from '../services/notificationSdk';
 const db = new sqlite3.Database(':memory:');
 
-function initDB() {
+export function initDB() {
+  process.on('exit', () => {
+    db.close();
+  });
+
   db.serialize(() => {
     db.run(
-      'CREATE TABLE notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, externalId TEXT, channel TEXT, to TEXT, body TEXT, status TEXT) ',
+      'CREATE TABLE notifications (' +
+        '`id` INTEGER PRIMARY KEY AUTOINCREMENT,' +
+        '`externalId` TEXT,' +
+        '`channel` TEXT,' +
+        '`to` TEXT,' +
+        '`body` TEXT,' +
+        '`status` TEXT' +
+        ')',
     );
   });
 }
 
-function insertNotification(
-  notification: Notification,
+export function insertNotification(
+  channel: Channel,
+  to: string,
+  body: string,
+  externalId: string,
   status: string = 'processing',
 ) {
   db.serialize(() => {
-    const stmt = db.prepare(
-      'INSERT INTO notifications VALUES (null, ?, ?, ?, ?)',
-    );
-    stmt.run(
-      notification.externalId,
-      notification.channel,
-      notification.to,
-      notification.body,
-      status,
-    );
-    stmt.finalize();
+    db.prepare('INSERT INTO notifications VALUES (null, ?, ?, ?, ?, ?)')
+      .run(externalId, channel, to, body, status)
+      .finalize();
+    dumpNotifications();
   });
 }
 
-function updateNotificationStatus(externalId: number, status: string) {
+export function updateNotificationStatus(externalId: number, status: string) {
   db.serialize(() => {
-    const stmt = db.prepare(
-      'UPDATE notifications SET status = ? WHERE externalId = ?',
-    );
-    stmt.run(status, externalId);
-    stmt.finalize();
+    db.prepare('UPDATE notifications SET status = ? WHERE externalId = ?')
+      .run(status, externalId)
+      .finalize();
+    dumpNotifications();
   });
 }
 
-//finish this, the idea is to get either
-function queryNotificationStatus(externalId: number, id: number) {
-  db.serialize(() => {
-    const stmt = db.prepare(
-      'SELECT status FROM notifications WHERE externalId = ?',
-    );
-    stmt.run(externalId);
-    stmt.finalize();
-  });
+export function queryNotification(externalId: number): Promise<Notification> {
+  return new Promise<Notification>((resolve) =>
+    db.serialize(() => {
+      db.prepare('SELECT status FROM notifications WHERE externalId = ?')
+        .run(externalId)
+        .get(resolve || console.log)
+        .finalize();
+    }),
+  );
 }
 
-process.on('exit', () => {
-  db.close();
-});
+//DEBUG FUNCTION
+export function dumpNotifications() {
+  console.clear();
+  db.all('SELECT * FROM notifications', console.log);
+}
