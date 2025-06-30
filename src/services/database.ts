@@ -71,43 +71,29 @@ export function insertWebhook(webhook: Webhook): Promise<void> {
 // seja mais recente, e marca o webhook como processado caso exista
 export function updateNotificationStatus(webhook: Webhook): Promise<void> {
   return execDB((resolve, reject) => {
-    db.run('BEGIN TRANSACTION');
-    db.prepare(
-      'UPDATE notifications SET status = ? WHERE externalId = ? AND timestamp < ?',
-    )
-      .run(
-        webhook.event,
-        webhook.notificationId,
-        webhook.timestamp,
-        (err: Error) => {
-          if (err) {
-            db.run('ROLLBACK');
-            return reject(err);
-          }
-        },
-      )
-      .finalize();
+    const rollbackOnError = (err: Error) => {
+      db.run('ROLLBACK');
+      reject(err);
+    };
 
+    db.run('BEGIN TRANSACTION');
+    db.run(
+      'UPDATE notifications SET status = ? WHERE externalId = ? AND timestamp < ?',
+      webhook.event,
+      webhook.notificationId,
+      webhook.timestamp,
+      rollbackOnError,
+    );
     queryNotification(webhook.notificationId).then((notification) => {
       if (notification) {
-        db.prepare(
+        db.run(
           'UPDATE webhooks SET processed = 1 WHERE notificationId = ? AND event = ?',
-        )
-          .run(webhook.notificationId, webhook.event, (err: Error) => {
-            if (err) {
-              db.run('ROLLBACK');
-              return reject(err);
-            }
-          })
-          .finalize(() => {
-            db.run('COMMIT', (err: Error) => {
-              if (err) {
-                db.run('ROLLBACK');
-                return reject(err);
-              }
-              resolve();
-            });
-          });
+          webhook.notificationId,
+          webhook.event,
+          rollbackOnError,
+        ).run('COMMIT', (err: Error) => {
+          err ? rollbackOnError(err) : resolve();
+        });
       } else {
         console.warn(
           `Webhook se refere a uma notificação desconhecida ${webhook.notificationId}.\n` +
@@ -116,11 +102,7 @@ export function updateNotificationStatus(webhook: Webhook): Promise<void> {
         );
         // Pode ser feita aqui uma lógica de reprocessamento automática
         db.run('COMMIT', (err: Error) => {
-          if (err) {
-            db.run('ROLLBACK');
-            return reject(err);
-          }
-          resolve();
+          err ? rollbackOnError(err) : resolve();
         });
       }
     });
