@@ -6,7 +6,7 @@ const uuid = crypto.randomUUID();
 
 describe('POST /send', () => {
   it('should send a compliant notification', async () => {
-    await api
+    return api
       .post('/send')
       .send({
         channel: 'sms',
@@ -20,13 +20,14 @@ describe('POST /send', () => {
       })
       .catch((err: Error) => {
         console.error(err);
+        throw err;
       });
   });
 });
 
 describe('PATCH /update', () => {
   it('should update the database based on webhook received', async () => {
-    await api
+    return api
       .patch('/update')
       .send({
         id: uuid,
@@ -39,13 +40,14 @@ describe('PATCH /update', () => {
       })
       .catch((err: Error) => {
         console.error(err);
+        throw err;
       });
   });
 });
 
 describe('GET /query', () => {
   it('should query the database for a notification', async () => {
-    await api
+    return api
       .get('/query')
       .query({ externalId: uuid })
       .expect(200)
@@ -54,6 +56,7 @@ describe('GET /query', () => {
       })
       .catch((err: Error) => {
         console.error(err);
+        throw err;
       });
   });
 });

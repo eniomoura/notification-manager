@@ -72,8 +72,10 @@ export function insertWebhook(webhook: Webhook): Promise<void> {
 export function updateNotificationStatus(webhook: Webhook): Promise<void> {
   return execDB((resolve, reject) => {
     const rollbackOnError = (err: Error) => {
-      db.run('ROLLBACK');
-      reject(err);
+      if (err) {
+        db.run('ROLLBACK');
+        reject(err);
+      }
     };
 
     db.run('BEGIN TRANSACTION');
