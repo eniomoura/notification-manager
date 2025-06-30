@@ -32,7 +32,7 @@ describe('PATCH /update', () => {
       .send({
         id: uuid,
         timestamp: new Date().toISOString(),
-        event: 'delivered',
+        event: 'sent',
       })
       .expect(204)
       .then((res: Response) => {
