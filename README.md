@@ -112,4 +112,4 @@ Para garantir que os eventos sejam sempre  entregues, se houver falha na retenta
 
 A aplicação ignora webhooks com timestamps mais antigos, mantendo o estado da notificação condizente apenas com o webhook mais recente. A criação da notificação em si é realizada pelo próprio cliente e registrada no banco ao ser enviada, portanto sempre terá o webhook mais antigo.
 
-A aplicação não valida as transições para cada canal, mas decidi que como o propósito da aplicação é manter um registro que espelharia o estado da notificação no servidor, considerei os webhooks confiáveis para a manutenção de estados válidos. Essa validação ainda poderia ser útil para uma reconciliação dos estados caso a aplicação fique indisponível.
+A aplicação poderia validar as transições para cada canal, mas decidi que como o propósito da aplicação é manter um registro que espelharia o estado da notificação no servidor, considerei os webhooks confiáveis para a manutenção de estados válidos. Essa validação ainda poderia ser útil para uma reconciliação dos estados caso a aplicação fique indisponível.
