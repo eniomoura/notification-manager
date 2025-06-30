@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import supertest, { Response } from 'supertest';
 
 const api = supertest(`http://localhost:${process.env.PORT ?? 8000}`);
+const uuid = crypto.randomUUID();
 
 describe('POST /send', () => {
   it('should send a compliant notification', async () => {
@@ -11,9 +12,9 @@ describe('POST /send', () => {
         channel: 'sms',
         to: '+5511999999999',
         body: 'Hello World',
-        externalId: '1234',
+        externalId: uuid,
       })
-      .expect(200)
+      .expect(201)
       .then((res: Response) => {
         console.log(res.body);
       })
@@ -23,16 +24,16 @@ describe('POST /send', () => {
   });
 });
 
-describe('POST /update', () => {
+describe('PATCH /update', () => {
   it('should update the database based on webhook received', async () => {
     await api
-      .post('/update')
+      .patch('/update')
       .send({
-        id: '1234',
+        id: uuid,
         timestamp: '2025-06-27T20:25:23.591Z',
         event: 'delivered',
       })
-      .expect(200)
+      .expect(204)
       .then((res: Response) => {
         console.log(res.body);
       })
@@ -42,4 +43,17 @@ describe('POST /update', () => {
   });
 });
 
-//TODO: add query test
+describe('GET /query', () => {
+  it('should query the database for a notification', async () => {
+    await api
+      .get('/query')
+      .query({ externalId: uuid })
+      .expect(200)
+      .then((res: Response) => {
+        console.log(res.body);
+      })
+      .catch((err: Error) => {
+        console.error(err);
+      });
+  });
+});

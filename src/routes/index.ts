@@ -60,7 +60,7 @@ router.get('/query', (req: Request, res: Response) => {
     res.status(400).send();
     return;
   }
-  queryNotification(Number.parseInt(externalId))
+  queryNotification(externalId)
     .then((response) => {
       if (response) {
         res.status(200).send(response);

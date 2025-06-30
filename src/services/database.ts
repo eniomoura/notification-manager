@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { Channel } from '../services/notificationSdk';
 
 export interface Webhook {
-  id: number;
+  id: string;
   event: string;
   timestamp: string;
   processed?: boolean;
@@ -71,7 +71,7 @@ export function updateNotificationStatus(webhook: Webhook): Promise<void> {
   });
 }
 
-export function queryNotification(externalId: number): Promise<Notification> {
+export function queryNotification(externalId: string): Promise<Notification> {
   return new Promise<Notification>((resolve, reject) =>
     db.serialize(() => {
       db.prepare('SELECT * FROM notifications WHERE externalId = ?')
