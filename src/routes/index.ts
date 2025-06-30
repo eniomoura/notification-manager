@@ -15,7 +15,9 @@ router.post('/send', (req: Request, res: Response) => {
   const { channel, to, body, externalId } = req.body as Notification;
   console.log(new Date().toLocaleString().concat(' POST /send:'), req.body);
   if (!channel || !to || !body || !externalId) {
-    res.status(400).send();
+    res
+      .status(400)
+      .send("Campos 'channel', 'to', 'body' e 'externalId' obrigatórios");
     return;
   }
   notificationSdk
@@ -36,7 +38,7 @@ router.patch('/update', async (req: Request, res: Response) => {
   };
   console.log(new Date().toLocaleString().concat(' POST /update:'), req.body);
   if (!id || !timestamp || !event) {
-    res.status(400).send();
+    res.status(400).send("Campos 'id', 'timestamp' e 'event' obrigatórios");
     return;
   }
   try {
@@ -59,7 +61,7 @@ router.get('/query', (req: Request, res: Response) => {
     req.query.externalId,
   );
   if (!externalId) {
-    res.status(400).send();
+    res.status(400).send("Campo 'externalId' obrigatório");
     return;
   }
   queryNotification(externalId)
