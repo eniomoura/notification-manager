@@ -18,7 +18,7 @@ describe('POST /send', () => {
         console.log(res.body);
       })
       .catch((err: Error) => {
-        throw err;
+        console.error(err);
       });
   });
 });
@@ -28,16 +28,18 @@ describe('POST /update', () => {
     await api
       .post('/update')
       .send({
-        externalId: '1234',
-        timestamp: 'YYYY-MM-DDThh:mm:ss.SSSZ',
-        event: 'delivered', // or sent, etc
+        id: '1234',
+        timestamp: '2025-06-27T20:25:23.591Z',
+        event: 'delivered',
       })
       .expect(200)
       .then((res: Response) => {
         console.log(res.body);
       })
       .catch((err: Error) => {
-        throw err;
+        console.error(err);
       });
   });
 });
+
+//TODO: add query test

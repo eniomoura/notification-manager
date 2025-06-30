@@ -1,8 +1,4 @@
-import {
-  insertNotification,
-  queryNotification,
-  updateNotificationStatus,
-} from './database';
+import { insertNotification } from './database';
 
 export enum Channel {
   sms = 'sms',
@@ -57,26 +53,19 @@ export class NotificationSdk {
     body: string,
     externalId: string,
   ): Promise<Notification> {
-    // mocked charge
-    insertNotification(channel, to, body, externalId, new Date().toISOString());
-    return new Promise<Notification>((resolve) => {
-      const id = (Math.random() + 1).toString(36).substring(7);
-      resolve({ id, channel, to, body, externalId, status: 'processing' });
-    });
-  }
+    const timestamp = new Date().toISOString();
+    const id = (Math.random() + 1).toString(36).substring(7);
 
-  // updates a notification in the internal db
-  async update(webhook: Webhook): Promise<void> {
-    //store webhook for later reconciliation
-    //check if notification exists in internal db
-    //check if the webhook timestamp is newer than the db one
-    //update notification if the webhook timestamp is newer than the db one
-    //return updated notification
-    updateNotificationStatus(webhook);
-  }
-
-  // returns a notification from the internal db
-  query(externalId: string): Promise<Notification> {
-    return queryNotification(Number.parseInt(externalId));
+    return insertNotification(channel, to, body, externalId, timestamp).then(
+      () => ({
+        id,
+        channel,
+        to,
+        body,
+        externalId,
+        status: 'processing',
+        timestamp,
+      }),
+    );
   }
 }

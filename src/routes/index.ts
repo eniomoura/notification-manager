@@ -1,6 +1,10 @@
-import { NotificationSdk } from '../services/notificationSdk';
 import express, { Request, Response } from 'express';
+import { NotificationSdk } from '../services/notificationSdk';
 import type { Notification, Webhook } from '../services/notificationSdk';
+import {
+  queryNotification,
+  updateNotificationStatus,
+} from '../services/database';
 const router = express.Router();
 
 const notificationSdk = new NotificationSdk();
@@ -30,8 +34,10 @@ router.patch('/update', (req: Request, res: Response) => {
     res.status(400).send();
     return;
   }
-  notificationSdk
-    .update({ id, timestamp, event })
+  //TODO: store webhook for later reconciliation
+  //TODO: check if notification exists in internal db - if it doesn't, maybe trigger reconciliation?
+  //TODO: check if the webhook timestamp is newer than the db one - ignore update if older
+  updateNotificationStatus({ id, timestamp, event })
     .then(() => res.status(204).send())
     .catch((err: Error) => {
       console.error(err);
@@ -50,8 +56,7 @@ router.get('/query', (req: Request, res: Response) => {
     res.status(400).send();
     return;
   }
-  notificationSdk
-    .query(externalId)
+  queryNotification(Number.parseInt(externalId))
     .then((response) => {
       if (response) {
         res.status(200).send(response);

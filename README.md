@@ -63,7 +63,7 @@ Exemplo:
 ```
 Retorno:
 ```
-204 - Atualização realizada com sucesso.
+204 - Atualização realizada com sucesso. Isso inclui no-ops.
 202 - Atualização ignorada - o timestamp é mais antigo do que a última atualização.
 400 - Corpo da requisição (webhook) não está no formato correto.
 500 - Erro na atualização do status no banco de dados, conciliação pode ser necessária.
