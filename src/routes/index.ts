@@ -39,7 +39,6 @@ router.patch('/update', async (req: Request, res: Response) => {
     res.status(400).send();
     return;
   }
-  //TODO: check if notification exists in internal db - if it doesn't, maybe trigger reconciliation?
   try {
     await Promise.all([
       insertWebhook({ notificationId: id, timestamp, event }),

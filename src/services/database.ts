@@ -88,16 +88,33 @@ export function updateNotificationStatus(webhook: Webhook): Promise<void> {
       )
       .finalize();
 
-    db.prepare(
-      'UPDATE webhooks SET processed = 1 WHERE notificationId = ? AND event = ?',
-    )
-      .run(webhook.notificationId, webhook.event, (err: Error) => {
-        if (err) {
-          db.run('ROLLBACK');
-          return reject(err);
-        }
-      })
-      .finalize(() => {
+    queryNotification(webhook.notificationId).then((notification) => {
+      if (notification) {
+        db.prepare(
+          'UPDATE webhooks SET processed = 1 WHERE notificationId = ? AND event = ?',
+        )
+          .run(webhook.notificationId, webhook.event, (err: Error) => {
+            if (err) {
+              db.run('ROLLBACK');
+              return reject(err);
+            }
+          })
+          .finalize(() => {
+            db.run('COMMIT', (err: Error) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return reject(err);
+              }
+              resolve();
+            });
+          });
+      } else {
+        console.warn(
+          `Webhook se refere a uma notificação desconhecida ${webhook.notificationId}.\n` +
+            'Isso pode ser devido a um problema ao armazenar notificações no banco de dados.\n' +
+            'O webhook será armazenado e precisará ser reprocessado.',
+        );
+        // Pode ser feita aqui uma lógica de reprocessamento automática
         db.run('COMMIT', (err: Error) => {
           if (err) {
             db.run('ROLLBACK');
@@ -105,7 +122,8 @@ export function updateNotificationStatus(webhook: Webhook): Promise<void> {
           }
           resolve();
         });
-      });
+      }
+    });
   });
 }
 
