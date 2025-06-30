@@ -19,7 +19,8 @@ npm run dev
 Os endpoints abaixo podem ser chamados via HTTP para efetuar as seguintes operações:
 
 ## POST /send - Enviar Notificação
-Corpo da requisição:
+### Corpo da requisição:
+Todos os campos são obrigatórios.
 ```
 id (número) - identificador interno da notificação
 externalId (número) - identificador externo da notificação
@@ -37,9 +38,16 @@ Exemplo:
   "body": "Teste de notificacao",
 }
 ```
+Retorno:
+```
+201 - Notificação enviada com sucesso, retorna um objeto com os dados da notificação enviada
+400 - O corpo da requisição está faltando algum campo obrigatório
+500 - Erro no envio da notificação ou inserção no banco de dados interno, conciliação pode ser necessária
+```
 
 ## PATCH /update - Atualizar Notificação
-Corpo da requisição:
+### Corpo da requisição:
+Todos os campos são obrigatórios.
 ```
 id (número) - identificador externo da notificação
 timestamp (data em formato ISO) - data e hora da atualização
@@ -53,13 +61,34 @@ Exemplo:
   "event": "delivered"
 }
 ```
+Retorno:
+```
+204 - Atualização realizada com sucesso.
+202 - Atualização ignorada - o timestamp é mais antigo do que a última atualização.
+400 - Corpo da requisição (webhook) não está no formato correto.
+500 - Erro na atualização do status no banco de dados, conciliação pode ser necessária.
+```
 
 ## GET /query - Atualizar Notificação
-Parâmetros de URL:
+### Parâmetros de URL:
+Todos os campos são obrigatórios.
 ```
 externalId - identificador externo da notificação
 ```
 Exemplo:
 ```
 http://notificationmanager.api/query?externalId=321
+```
+Retorno:
+```
+200 - Pesquisa bem sucedida, retorna os resultados encontrados.
+204 - Pesquisa bem sucedida, porém nenhum resultado foi encontrado.
+400 - Corpo da requisição (webhook) não está no formato correto.
+500 - Erro na atualização do status no banco de dados, conciliação pode ser necessária.
+```
+
+# Testes
+Testes de integração são incluídos no pacote. Para executá-los, execute no terminal:
+```bash
+npm run test
 ```

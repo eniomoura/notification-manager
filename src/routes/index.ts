@@ -15,9 +15,10 @@ router.post('/send', (req: Request, res: Response) => {
   }
   notificationSdk
     .send(channel, to, body, externalId)
-    .then((response) => res.status(200).send(response))
+    .then((response) => res.status(201).send(response))
     .catch((err: Error) => {
       console.error(err);
+      res.status(500).send(err);
     });
 });
 
@@ -31,9 +32,10 @@ router.patch('/update', (req: Request, res: Response) => {
   }
   notificationSdk
     .update({ id, timestamp, event })
-    .then((response) => res.status(200).send(response))
+    .then(() => res.status(204).send())
     .catch((err: Error) => {
       console.error(err);
+      res.status(500).send(err);
     });
 });
 
@@ -50,9 +52,16 @@ router.get('/query', (req: Request, res: Response) => {
   }
   notificationSdk
     .query(externalId)
-    .then((response) => res.status(200).send(response))
+    .then((response) => {
+      if (response) {
+        res.status(200).send(response);
+      } else {
+        res.status(204).send(response);
+      }
+    })
     .catch((err: Error) => {
       console.error(err);
+      res.status(500).send(err);
     });
 });
 
