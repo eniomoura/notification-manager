@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 const notificationSdk = new NotificationSdk();
 
-// Send a notification to the external server, returns the notification object with the id
+// Manda uma notificação para o servidor externo, retorna o objeto da notificação com o id
 router.post('/send', (req: Request, res: Response) => {
   const { channel, to, body, externalId } = req.body as Notification;
   console.log(new Date().toLocaleString().concat(' POST /send:'), req.body);
@@ -27,20 +27,23 @@ router.post('/send', (req: Request, res: Response) => {
     });
 });
 
-// Update notification status on DB from webhook body
+// Recebe um webhook e atualiza o status da notificação no banco de dados
 router.patch('/update', async (req: Request, res: Response) => {
-  const { id, timestamp, event } = req.body as Webhook;
+  const { id, timestamp, event } = req.body as {
+    id: string;
+    timestamp: string;
+    event: string;
+  };
   console.log(new Date().toLocaleString().concat(' POST /update:'), req.body);
   if (!id || !timestamp || !event) {
     res.status(400).send();
     return;
   }
   //TODO: check if notification exists in internal db - if it doesn't, maybe trigger reconciliation?
-  //TODO: check if the webhook timestamp is newer than the db one - ignore update if older
   try {
     await Promise.all([
-      insertWebhook({ id, timestamp, event }),
-      updateNotificationStatus({ id, timestamp, event }),
+      insertWebhook({ notificationId: id, timestamp, event }),
+      updateNotificationStatus({ notificationId: id, timestamp, event }),
     ]);
     res.status(204).send();
   } catch (err: unknown) {
@@ -49,7 +52,7 @@ router.patch('/update', async (req: Request, res: Response) => {
   }
 });
 
-// Query notification status from DB
+// Consulta uma notificação no banco de dados e retorna toda sua informação
 router.get('/query', (req: Request, res: Response) => {
   const { externalId } = req.query as { externalId: string };
   console.log(
@@ -63,7 +66,7 @@ router.get('/query', (req: Request, res: Response) => {
   queryNotification(externalId)
     .then((response) => {
       if (response) {
-        res.status(200).send(response);
+        return res.status(200).send(response);
       }
       res.status(204).send();
     })

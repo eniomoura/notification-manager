@@ -11,7 +11,8 @@ CREATE TABLE
 
 CREATE TABLE
   IF NOT EXISTS webhooks (
-    `externalId` TEXT PRIMARY KEY,
+    `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+    `notificationId` TEXT,
     `event` TEXT,
     `timestamp` TEXT,
     `processed` INTEGER

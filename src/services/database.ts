@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { Channel } from '../services/notificationSdk';
 
 export interface Webhook {
-  id: string;
+  notificationId: string;
   event: string;
   timestamp: string;
   processed?: boolean;
@@ -12,6 +12,7 @@ export interface Webhook {
 const schema = readFileSync('schema.sql', 'utf8');
 const db = new sqlite3.Database('database.db');
 
+// Wrapper para executar comandos síncronos no banco de dados
 function execDB(
   callback: (resolve: () => void, reject: (err: Error) => void) => void,
 ): Promise<void> {
@@ -20,6 +21,7 @@ function execDB(
   );
 }
 
+// Inicializa o banco de dados com o schema
 export function initDB(): Promise<void> {
   process.on('exit', () => {
     db.close();
@@ -30,6 +32,7 @@ export function initDB(): Promise<void> {
   });
 }
 
+// Insere uma notificação no banco de dados
 export function insertNotification(
   channel: Channel,
   to: string,
@@ -39,6 +42,7 @@ export function insertNotification(
   status: string = 'processing',
 ): Promise<void> {
   return execDB((resolve, reject) => {
+    //COLUNAS: id, externalId, channel, to, body, status, timestamp
     db.prepare('INSERT INTO notifications VALUES (null, ?, ?, ?, ?, ?, ?)')
       .run(externalId, channel, to, body, status, timestamp, (err: Error) =>
         err ? reject(err) : resolve(),
@@ -47,38 +51,72 @@ export function insertNotification(
   });
 }
 
+// Insere um webhook no banco de dados para manter um registro
 export function insertWebhook(webhook: Webhook): Promise<void> {
   return execDB((resolve, reject) => {
-    db.prepare('INSERT INTO webhooks VALUES (?, ?, ?, ?)')
+    //COLUNAS: externalId, event, timestamp, processed
+    db.prepare('INSERT INTO webhooks VALUES (null, ?, ?, ?, ?)')
       .run(
-        webhook.id,
+        webhook.notificationId,
         webhook.event,
         webhook.timestamp,
-        webhook.processed || 0,
+        false,
         (err: Error) => (err ? reject(err) : resolve()),
       )
       .finalize();
   });
 }
 
+// Atualiza o status de uma notificação no banco de dados caso o timestamp do webhook
+// seja mais recente, e marca o webhook como processado caso exista
 export function updateNotificationStatus(webhook: Webhook): Promise<void> {
   return execDB((resolve, reject) => {
-    db.prepare('UPDATE notifications SET status = ? WHERE externalId = ?')
-      .run(webhook.event, webhook.id, (err: Error) =>
-        err ? reject(err) : resolve(),
+    db.run('BEGIN TRANSACTION');
+    db.prepare(
+      'UPDATE notifications SET status = ? WHERE externalId = ? AND timestamp < ?',
+    )
+      .run(
+        webhook.event,
+        webhook.notificationId,
+        webhook.timestamp,
+        (err: Error) => {
+          if (err) {
+            db.run('ROLLBACK');
+            return reject(err);
+          }
+        },
       )
       .finalize();
+
+    db.prepare(
+      'UPDATE webhooks SET processed = 1 WHERE notificationId = ? AND event = ?',
+    )
+      .run(webhook.notificationId, webhook.event, (err: Error) => {
+        if (err) {
+          db.run('ROLLBACK');
+          return reject(err);
+        }
+      })
+      .finalize(() => {
+        db.run('COMMIT', (err: Error) => {
+          if (err) {
+            db.run('ROLLBACK');
+            return reject(err);
+          }
+          resolve();
+        });
+      });
   });
 }
 
+// Busca uma notificação no banco de dados e retorna toda sua informação
 export function queryNotification(externalId: string): Promise<Notification> {
   return new Promise<Notification>((resolve, reject) =>
-    db.serialize(() => {
-      db.prepare('SELECT * FROM notifications WHERE externalId = ?')
-        .get(externalId, (err: Error, response: Notification) =>
-          err ? reject(err) : resolve(response),
-        )
-        .finalize();
-    }),
+    db
+      .prepare('SELECT * FROM notifications WHERE externalId = ?')
+      .get(externalId, (err: Error, response: Notification) =>
+        err ? reject(err) : resolve(response),
+      )
+      .finalize(),
   );
 }
