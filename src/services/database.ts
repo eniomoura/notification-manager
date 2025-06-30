@@ -1,5 +1,9 @@
 import sqlite3 from 'sqlite3';
-import { Channel, type Notification } from '../services/notificationSdk';
+import {
+  Channel,
+  Webhook,
+  type Notification,
+} from '../services/notificationSdk';
 const db = new sqlite3.Database('database.db');
 
 export function initDB() {
@@ -16,6 +20,7 @@ export function initDB() {
         '`to` TEXT,' +
         '`body` TEXT,' +
         '`status` TEXT' +
+        '`timestamp` TEXT' +
         ')',
     );
   });
@@ -26,29 +31,28 @@ export function insertNotification(
   to: string,
   body: string,
   externalId: string,
+  timestamp: string,
   status: string = 'processing',
 ) {
   db.serialize(() => {
-    db.prepare('INSERT INTO notifications VALUES (null, ?, ?, ?, ?, ?)')
-      .run(externalId, channel, to, body, status)
+    db.prepare('INSERT INTO notifications VALUES (null, ?, ?, ?, ?, ?, ?)')
+      .run(externalId, channel, to, body, status, timestamp)
       .finalize();
-    dumpNotifications();
   });
 }
 
-export function updateNotificationStatus(externalId: number, status: string) {
+export function updateNotificationStatus(webhook: Webhook) {
   db.serialize(() => {
     db.prepare('UPDATE notifications SET status = ? WHERE externalId = ?')
-      .run(status, externalId)
+      .run(webhook.event, webhook.id)
       .finalize();
-    dumpNotifications();
   });
 }
 
 export function queryNotification(externalId: number): Promise<Notification> {
   return new Promise<Notification>((resolve) =>
     db.serialize(() => {
-      db.prepare('SELECT status FROM notifications WHERE externalId = ?')
+      db.prepare('SELECT * FROM notifications WHERE externalId = ?')
         .get(externalId, (err: Error, response: Notification) => {
           if (err) throw err;
           resolve(response);
@@ -56,10 +60,4 @@ export function queryNotification(externalId: number): Promise<Notification> {
         .finalize();
     }),
   );
-}
-
-//DEBUG FUNCTION
-export function dumpNotifications() {
-  console.clear();
-  db.all('SELECT * FROM notifications', console.log);
 }

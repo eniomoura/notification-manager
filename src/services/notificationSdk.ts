@@ -14,7 +14,7 @@ export interface Webhook {
   id: number;
 
   // data/hora de envio da notificação
-  timestamp: number;
+  timestamp: string;
 
   // transição da notificação que ocorreu
   event: string;
@@ -40,7 +40,7 @@ export interface Notification {
   status: string;
 
   // other fields: recipients, timestamps, etc
-  latestUpdate?: Date;
+  timestamp?: string;
 }
 
 export class NotificationSdk {
@@ -58,7 +58,7 @@ export class NotificationSdk {
     externalId: string,
   ): Promise<Notification> {
     // mocked charge
-    insertNotification(channel, to, body, externalId);
+    insertNotification(channel, to, body, externalId, new Date().toISOString());
     return new Promise<Notification>((resolve) => {
       const id = (Math.random() + 1).toString(36).substring(7);
       resolve({ id, channel, to, body, externalId, status: 'processing' });
@@ -72,7 +72,7 @@ export class NotificationSdk {
     //check if the webhook timestamp is newer than the db one
     //update notification if the webhook timestamp is newer than the db one
     //return updated notification
-    updateNotificationStatus(webhook.id, webhook.event);
+    updateNotificationStatus(webhook);
   }
 
   // returns a notification from the internal db

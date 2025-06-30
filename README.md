@@ -50,7 +50,7 @@ Retorno:
 Todos os campos são obrigatórios.
 ```
 id (número) - identificador externo da notificação
-timestamp (data em formato ISO) - data e hora da atualização
+timestamp (string de data em formato ISO) - data e hora da atualização
 event (string) - novo estado da notificação
 ```
 Exemplo:
@@ -81,7 +81,7 @@ http://notificationmanager.api/query?externalId=321
 ```
 Retorno:
 ```
-200 - Pesquisa bem sucedida, retorna os resultados encontrados.
+200 - Pesquisa bem sucedida, retorna o objeto da notificação com o id fornecido.
 204 - Pesquisa bem sucedida, porém nenhum resultado foi encontrado.
 400 - Corpo da requisição (webhook) não está no formato correto.
 500 - Erro na atualização do status no banco de dados, conciliação pode ser necessária.
