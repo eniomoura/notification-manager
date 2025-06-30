@@ -92,3 +92,24 @@ Testes de integração são incluídos no pacote. Para executá-los, execute no 
 ```bash
 npm run test
 ```
+
+# Perguntas
+> Caso a nossa aplicação fique indisponível por muito tempo, podemos perder eventos de mudança de status. Quais medidas você tomaria para deixar a aplicação mais robusta?
+
+A aplicação poderia ser modificada para poder ser executada em várias instâncias, que poderiam ser containerizadas e hospedadas em diferentes lugares.
+
+Outra possível medida seria a implementação de uma fila de eventos a serem realizados via um broker de mensageria como o RabbitMQ, servindo como um buffer para atualizações pendentes.
+
+A aplicação também implementa o armazenamento de webhooks recebidos que não tiveram uma atualização realizada, servindo como uma fila para uma reconciliação de dados após uma indisponibilidade do banco de dados, que foi uma medida tomada pensando nessa possibiliddade.
+
+> Precisamos enviar os eventos de mudança de status das notificações para um stream de eventos (e.g. Apache Kafka, Amazon Kinesis Data Streams, etc) para que outras aplicações possam consumí-los. Precisamos garantir que cada evento seja entregue pelo menos uma vez no stream. Como você faria esse processo?
+
+O armazenamento de webhooks feito pela aplicação consegue manter um registro de quais eventos foram recebidos e quais ainda precisam ser processados. É possível implementar um método de reconciliação, que executa os eventos pendentes.
+
+Para garantir que os eventos sejam sempre  entregues, se houver falha na retentativa, podem ser realizadas novas tentativas, até que cada transição do canal daquela notificação seja enviada.
+
+> Os eventos de mudança de estado podem vir eventualmente fora de ordem, caso o serviço externo de notificações demore para processar. Como você lidaria com isso?
+
+A aplicação ignora webhooks com timestamps mais antigos, mantendo o estado da notificação condizente apenas com o webhook mais recente. A criação da notificação em si é realizada pelo próprio cliente e registrada no banco ao ser enviada, portanto sempre terá o webhook mais antigo.
+
+A aplicação valida as transições para cada canal, mas decidi que como o propósito da aplicação é manter um registro que espelharia o estado da notificação no servidor, considerei os webhooks confiáveis para a manutenção de estados válidos. Essa validação ainda poderia ser útil para uma reconciliação dos estados caso a aplicação fique indisponível.
