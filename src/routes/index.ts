@@ -5,8 +5,8 @@ import {
   queryNotification,
   updateNotificationStatus,
 } from '../services/database';
-const router = express.Router();
 
+const router = express.Router();
 const notificationSdk = new NotificationSdk();
 
 // Send a notification to the external server, returns the notification object with the id

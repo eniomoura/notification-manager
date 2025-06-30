@@ -1,10 +1,9 @@
 import sqlite3 from 'sqlite3';
-import {
-  Channel,
-  Webhook,
-  type Notification,
-} from '../services/notificationSdk';
+import { readFileSync } from 'node:fs';
+import { Channel, Webhook } from '../services/notificationSdk';
+
 const db = new sqlite3.Database('database.db');
+const schema = readFileSync('schema.sql', 'utf8');
 
 export function initDB(): Promise<void> {
   process.on('exit', () => {
@@ -13,21 +12,10 @@ export function initDB(): Promise<void> {
 
   return new Promise<void>((resolve, reject) =>
     db.serialize(() => {
-      db.run(
-        'CREATE TABLE IF NOT EXISTS notifications (' +
-          '`id` INTEGER PRIMARY KEY AUTOINCREMENT,' +
-          '`externalId` TEXT,' +
-          '`channel` TEXT,' +
-          '`to` TEXT,' +
-          '`body` TEXT,' +
-          '`status` TEXT,' +
-          '`timestamp` TEXT' +
-          ')',
-        (err: Error) => {
-          if (err) reject(err);
-          else resolve();
-        },
-      );
+      db.run(schema, (err: Error) => {
+        if (err) reject(err);
+        else resolve();
+      });
     }),
   );
 }
