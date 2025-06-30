@@ -7,4 +7,12 @@ CREATE TABLE
     `body` TEXT,
     `status` TEXT,
     `timestamp` TEXT
-  )
+  );
+
+CREATE TABLE
+  IF NOT EXISTS webhooks (
+    `externalId` TEXT PRIMARY KEY,
+    `event` TEXT,
+    `timestamp` TEXT,
+    `processed` INTEGER
+  );

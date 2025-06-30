@@ -5,17 +5,6 @@ export enum Channel {
   whatsApp = 'whatsApp',
 }
 
-export interface Webhook {
-  // id definido pelos sistemas externos ao serviço de notificações
-  id: number;
-
-  // data/hora de envio da notificação
-  timestamp: string;
-
-  // transição da notificação que ocorreu
-  event: string;
-}
-
 export interface Notification {
   // id da notificação no disparador
   id: string;

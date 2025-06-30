@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
-import { NotificationSdk } from '../services/notificationSdk';
-import type { Notification, Webhook } from '../services/notificationSdk';
+import { NotificationSdk, Notification } from '../services/notificationSdk';
 import {
+  insertWebhook,
   queryNotification,
   updateNotificationStatus,
+  Webhook,
 } from '../services/database';
 
 const router = express.Router();
@@ -27,22 +28,25 @@ router.post('/send', (req: Request, res: Response) => {
 });
 
 // Update notification status on DB from webhook body
-router.patch('/update', (req: Request, res: Response) => {
+router.patch('/update', async (req: Request, res: Response) => {
   const { id, timestamp, event } = req.body as Webhook;
   console.log(new Date().toLocaleString().concat(' POST /update:'), req.body);
   if (!id || !timestamp || !event) {
     res.status(400).send();
     return;
   }
-  //TODO: store webhook for later reconciliation
   //TODO: check if notification exists in internal db - if it doesn't, maybe trigger reconciliation?
   //TODO: check if the webhook timestamp is newer than the db one - ignore update if older
-  updateNotificationStatus({ id, timestamp, event })
-    .then(() => res.status(204).send())
-    .catch((err: Error) => {
-      console.error(err);
-      res.status(500).send(err);
-    });
+  try {
+    await Promise.all([
+      insertWebhook({ id, timestamp, event }),
+      updateNotificationStatus({ id, timestamp, event }),
+    ]);
+    res.status(204).send();
+  } catch (err: unknown) {
+    console.error(err);
+    res.status(500).send(err);
+  }
 });
 
 // Query notification status from DB
@@ -60,9 +64,8 @@ router.get('/query', (req: Request, res: Response) => {
     .then((response) => {
       if (response) {
         res.status(200).send(response);
-      } else {
-        res.status(204).send(response);
       }
+      res.status(204).send();
     })
     .catch((err: Error) => {
       console.error(err);
